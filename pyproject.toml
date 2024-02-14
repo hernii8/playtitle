@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "playtitle"
+version = "0.1.0"
+description = ""
+authors = ["Hernán de la Fuente <hernandelafuentelopez@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+spotipy = "^2.23.0"
+pytest = "^8.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest-mock = "^3.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
