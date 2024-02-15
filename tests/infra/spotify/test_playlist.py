@@ -7,7 +7,7 @@ from playtitle.infra.spotify.repository.playlist import SpotifyPlaylist
 @pytest.fixture()
 def spotify_client_mock(mocker) -> MagicMock:
     client_mock = MagicMock(spec=spotipy.Spotify)
-    mocker.patch('playtitle.infra.spotify.client.SpotifyClient.get',
+    mocker.patch('playtitle.infra.spotify.client.SpotifyClient',
                  return_value=client_mock)
     return client_mock
 
@@ -37,7 +37,8 @@ def test_spotify_playlist_basic_fields(spotify_client_mock: MagicMock) -> None:
         }
     }
     spotify_client_mock.playlist.return_value = sample_response
-    playlist = SpotifyPlaylist(spotify_client_mock.playlist.return_value["id"])
+    playlist = SpotifyPlaylist(
+        spotify_client_mock.playlist.return_value["id"], spotify_client_mock)
     assert playlist.id == spotify_client_mock.playlist.return_value["id"]
     assert playlist.name == spotify_client_mock.playlist.return_value["name"]
     assert playlist.description == spotify_client_mock.playlist.return_value["description"]
@@ -82,7 +83,8 @@ def test_spotify_playlist_songs_over_limit(spotify_client_mock: MagicMock) -> No
         }
     }
     spotify_client_mock.playlist.return_value = sample_response
-    playlist = SpotifyPlaylist(spotify_client_mock.playlist.return_value["id"])
+    playlist = SpotifyPlaylist(
+        spotify_client_mock.playlist.return_value["id"], spotify_client_mock)
     assert len(playlist.songs) == len(
         spotify_client_mock.playlist.return_value["tracks"]["items"])
 
@@ -123,6 +125,7 @@ def test_spotify_playlist_avoid_episodes(spotify_client_mock: MagicMock) -> None
         }
     }
     spotify_client_mock.playlist.return_value = sample_response
-    playlist = SpotifyPlaylist(spotify_client_mock.playlist.return_value["id"])
+    playlist = SpotifyPlaylist(
+        spotify_client_mock.playlist.return_value["id"], spotify_client_mock)
     assert len(playlist.songs) == len(
         spotify_client_mock.playlist.return_value["tracks"]["items"]) - 1
