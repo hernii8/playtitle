@@ -27,4 +27,3 @@ if __name__ == "__main__":
         songs = GetSongsFromPlaylist(playlist).exec()
         title = CohereTitleGenerator(
             cohere_client=cohere_client).generate_title()
-        print(title)
