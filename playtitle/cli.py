@@ -1,15 +1,12 @@
-import json
 import sys
-from infra.spotify.client import SpotifyClient
+from playtitle.infra.spotify.repository.playlist import SpotifyPlaylist
+from playtitle.use_cases.get_all_songs import GetSongsFromPlaylist
 
-with open("config/credentials.json") as file:
-    credentials = json.load(file)
-spotify = SpotifyClient().init(
-    credentials["spotify"]["client_id"],
-    credentials["spotify"]["client_secret"],
-    credentials["spotify"]["callback_url"]
-)
 
 if __name__ == "__main__":
     command = sys.argv[1]
     args = sys.argv[2:]
+    if command == "playlist":
+        playlist_id = args[0]
+        playlist = SpotifyPlaylist(playlist_id=playlist_id)
+        songs = GetSongsFromPlaylist(playlist).exec()

@@ -1,5 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import json
 
 
 class SpotifyClient:
@@ -32,3 +33,11 @@ class SpotifyClient:
     @classmethod
     def restore(cls) -> spotipy.Spotify:
         cls.__client = None
+
+
+with open("config/credentials.json") as file:
+    credentials = json.load(file)
+SpotifyClient.init(
+    credentials["spotify"]["client_id"],
+    credentials["spotify"]["client_secret"]
+)
