@@ -12,3 +12,4 @@ spotify = SpotifyClient().init(
 
 if __name__ == "__main__":
     command = sys.argv[1]
+    args = sys.argv[2:]

@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from playtitle.domain.entities.playlist import Playlist
 
 
+@dataclass(frozen=True)
 class GetSongsFromPlaylist:
-    def __init__(self, playlist: Playlist) -> None:
-        pass
-    pass
+    playlist: Playlist
+
+    def exec(self):
+        return self.playlist.songs
