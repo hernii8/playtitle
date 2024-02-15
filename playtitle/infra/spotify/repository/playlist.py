@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from typing import Any
-from spotipy import Spotify
 from playtitle.domain.entities.playlist import Playlist
 from playtitle.domain.entities.song import Song
+from playtitle.infra.spotify.client import SpotifyClient
 
 
 @dataclass(frozen=True)
 class SpotifyPlaylist(Playlist):
-    spotify_client: Spotify
+    spotify_client: SpotifyClient
 
-    def __init__(self, playlist_id: str, spotify_client: Spotify) -> None:
+    def __init__(self, playlist_id: str, spotify_client: SpotifyClient) -> None:
         object.__setattr__(self, "spotify_client", spotify_client)
         playlist_info = self.__fetch_info(playlist_id)
         songs = [self.__to_song(
@@ -24,7 +24,7 @@ class SpotifyPlaylist(Playlist):
         )
 
     def __fetch_info(self, playlist_id: str) -> dict[Any | str, Any]:
-        response = self.spotify_client.playlist(playlist_id)
+        response = self.spotify_client.client.playlist(playlist_id)
         return {
             **response,
             "songs": self.__fetch_songs(response["tracks"])
@@ -36,7 +36,7 @@ class SpotifyPlaylist(Playlist):
         limit = 100
         if (total := response_tracks["total"]) > default_limit:
             for i in range(default_limit + 1, total, limit):
-                songs += self.spotify_client.playlist_items(
+                songs += self.spotify_client.client.playlist_items(
                     playlist_id=self.id, offset=i)["items"]
 
         return songs
