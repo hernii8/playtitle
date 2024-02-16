@@ -68,4 +68,5 @@ class SpotifyPlaylist(Playlist):
             liveness=spotify_song["liveness"],
             loudness=spotify_song["loudness"],
             tempo=spotify_song["tempo"],
+            happiness=spotify_song["valence"],
         )

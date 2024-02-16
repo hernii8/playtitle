@@ -8,6 +8,7 @@ class SpotifySong(Song):
     danceability: float | None = None
     energy: float | None = None
     instrumentalness: float | None = None
-    liveness:float | None = None
+    liveness: float | None = None
     loudness: float | None = None
     tempo: float | None = None
+    happiness: float | None = None

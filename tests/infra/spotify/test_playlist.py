@@ -21,6 +21,7 @@ def spotify_client_mock(mocker) -> MagicMock:
             "liveness": 50,
             "loudness": 50,
             "tempo": 50,
+            "valence": 0.5,
         },
         {
             "acousticness": 50,
@@ -30,6 +31,7 @@ def spotify_client_mock(mocker) -> MagicMock:
             "liveness": 50,
             "loudness": 50,
             "tempo": 50,
+            "valence": 0.5,
         },
     ]
     spotify_client_mock.client.audio_features.return_value = sample_audio_features
