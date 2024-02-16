@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from playtitle.domain.entities.artist import Artist
 
 
 @dataclass(frozen=True)
@@ -9,6 +10,7 @@ class Song:
     explicit: bool
     popularity: int
     uri: str
+    artist: Artist = None
 
     @classmethod
     def from_dict(cls, d):
