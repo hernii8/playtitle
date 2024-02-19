@@ -1,12 +1,11 @@
 from unittest.mock import MagicMock
 from playtitle.infra.spotify.client import SpotifyClient
-from spotipy import Spotify
 import pytest
 
 
 @pytest.fixture()
 def spotipy_mock(mocker) -> MagicMock:
-    spotipy_mock = mocker.Mock(spec=Spotify)
+    spotipy_mock = mocker.Mock()
     mocker.patch(
         "playtitle.infra.spotify.client.Spotify",
         return_value=spotipy_mock,
