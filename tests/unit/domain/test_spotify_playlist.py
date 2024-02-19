@@ -1,3 +1,4 @@
+from playtitle.domain.entities.artist import Artist
 from playtitle.domain.entities.spotify_playlist import SpotifyPlaylist
 from playtitle.domain.entities.spotify_song import SpotifySong
 import pytest
@@ -21,6 +22,14 @@ def spotify_songs():
             loudness=50.0,
             tempo=120.0,
             happiness=0.1,
+            artists=[
+                Artist(
+                    name="artist",
+                    popularity=10,
+                    follower_count=10000,
+                    genres=["Pop", "Jazz"],
+                )
+            ],
         ),
         SpotifySong(
             id="id 2",
@@ -37,6 +46,14 @@ def spotify_songs():
             loudness=20.0,
             tempo=120.0,
             happiness=0.9,
+            artists=[
+                Artist(
+                    name="artist",
+                    popularity=10,
+                    follower_count=10000,
+                    genres=["Pop", "Jazz"],
+                )
+            ],
         ),
     ]
 

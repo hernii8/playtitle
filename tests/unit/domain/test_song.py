@@ -1,3 +1,4 @@
+from playtitle.domain.entities.artist import Artist
 import pytest
 from typing import Any
 from playtitle.domain.entities.song import Song
@@ -11,7 +12,15 @@ def init_attributes() -> dict[str, Any]:
         "duration_ms": 100,
         "explicit": False,
         "popularity": 50,
-        "uri": "uri"
+        "uri": "uri",
+        "artists": [
+            Artist(
+                name="artist",
+                popularity=10,
+                follower_count=10000,
+                genres=["Pop", "Jazz"],
+            )
+        ],
     }
 
 

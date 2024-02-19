@@ -1,6 +1,6 @@
 from typing import Any
+from playtitle.domain.entities.artist import Artist
 from playtitle.domain.entities.spotify_playlist import SpotifyPlaylist
-from playtitle.domain.entities.playlist import Playlist
 from playtitle.domain.entities.spotify_song import SpotifySong
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -29,7 +29,7 @@ class SpotifyClient:
             for item in playlist_info["songs"]
             if item["episode"] is False
         ]
-        return Playlist(
+        return SpotifyPlaylist(
             id=playlist_info["id"],
             name=playlist_info["name"],
             description=playlist_info["description"],
@@ -59,7 +59,6 @@ class SpotifyClient:
                     [song["id"] for song in songs_iteration]
                 )
                 tracks += songs_iteration
-
         return [
             {**song["track"], **audio_feature}
             for song, audio_feature in zip(tracks, audio_features)
@@ -81,4 +80,13 @@ class SpotifyClient:
             loudness=spotify_song["loudness"],
             tempo=spotify_song["tempo"],
             happiness=spotify_song["valence"],
+            artists=[
+                Artist(
+                    name=artist["name"],
+                    popularity=artist["popularity"],
+                    follower_count=artist["followers"]["total"],
+                    genres=artist["genres"],
+                )
+                for artist in spotify_song["artists"]
+            ],
         )

@@ -10,7 +10,7 @@ class Song:
     explicit: bool
     popularity: int
     uri: str
-    artist: Artist = None
+    artists: list[Artist] = None
 
     @classmethod
     def from_dict(cls, d):

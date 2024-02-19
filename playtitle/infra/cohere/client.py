@@ -1,7 +1,8 @@
 from cohere import Client
+from playtitle.infra.interfaces.llm_client import LLMClient
 
 
-class CohereClient:
+class CohereClient(LLMClient):
     __client: Client
 
     def __init__(self, api_key: str) -> None:
@@ -10,3 +11,6 @@ class CohereClient:
     @property
     def client(self):
         return self.__client
+
+    def generate_response(self, prompt: str):
+        return self.client.generate(prompt)

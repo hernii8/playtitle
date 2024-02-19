@@ -57,6 +57,14 @@ def test_spotify_playlist_basic_fields(spotipy_mock: MagicMock) -> None:
                         "popularity": 50,
                         "uri": "uri",
                         "episode": False,
+                        "artists": [
+                            {
+                                "name": "artist",
+                                "popularity": 10,
+                                "followers": {"total": 10000},
+                                "genres": ["Pop", "Jazz"],
+                            }
+                        ],
                     }
                 }
             ],
@@ -92,6 +100,14 @@ def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> None:
                         "popularity": 50,
                         "uri": "uri",
                         "episode": False,
+                        "artists": [
+                            {
+                                "name": "artist",
+                                "popularity": 10,
+                                "followers": {"total": 10000},
+                                "genres": ["Pop", "Jazz"],
+                            }
+                        ],
                     }
                 },
                 {
@@ -103,6 +119,14 @@ def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> None:
                         "popularity": 50,
                         "uri": "uri",
                         "episode": False,
+                        "artists": [
+                            {
+                                "name": "artist",
+                                "popularity": 10,
+                                "followers": {"total": 10000},
+                                "genres": ["Pop", "Jazz"],
+                            }
+                        ],
                     }
                 },
             ],
@@ -135,6 +159,14 @@ def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
                         "popularity": 50,
                         "uri": "uri",
                         "episode": True,
+                        "artists": [
+                            {
+                                "name": "artist",
+                                "popularity": 10,
+                                "followers": {"total": 10000},
+                                "genres": ["Pop", "Jazz"],
+                            }
+                        ],
                     }
                 },
                 {
@@ -146,6 +178,14 @@ def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
                         "popularity": 50,
                         "uri": "uri",
                         "episode": False,
+                        "artists": [
+                            {
+                                "name": "artist",
+                                "popularity": 10,
+                                "followers": {"total": 10000},
+                                "genres": ["Pop", "Jazz"],
+                            }
+                        ],
                     }
                 },
             ],
