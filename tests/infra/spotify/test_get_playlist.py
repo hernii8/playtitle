@@ -1,16 +1,19 @@
 from unittest.mock import MagicMock
+from playtitle.infra.spotify.client import SpotifyClient
+from spotipy import Spotify
 import pytest
-import spotipy
-from playtitle.infra.spotify.repository.playlist import SpotifyPlaylist
 
 
 @pytest.fixture()
-def spotify_client_mock(mocker) -> MagicMock:
-    spotify_client_mock = MagicMock(spec=spotipy.Spotify)
-    client_mock = MagicMock()
-    spotify_client_mock.client = client_mock
+def spotipy_mock(mocker) -> MagicMock:
+    spotipy_mock = mocker.Mock(spec=Spotify)
     mocker.patch(
-        "playtitle.infra.spotify.client.SpotifyClient", return_value=spotify_client_mock
+        "playtitle.infra.spotify.client.Spotify",
+        return_value=spotipy_mock,
+    )
+    mocker.patch(
+        "playtitle.infra.spotify.client.SpotifyClientCredentials",
+        return_value=mocker.Mock(),
     )
     sample_audio_features = [
         {
@@ -34,11 +37,11 @@ def spotify_client_mock(mocker) -> MagicMock:
             "valence": 0.5,
         },
     ]
-    spotify_client_mock.client.audio_features.return_value = sample_audio_features
-    return spotify_client_mock
+    spotipy_mock.audio_features.return_value = sample_audio_features
+    return spotipy_mock
 
 
-def test_spotify_playlist_basic_fields(spotify_client_mock: MagicMock) -> None:
+def test_spotify_playlist_basic_fields(spotipy_mock: MagicMock) -> None:
     sample_response = {
         "id": "sample_id",
         "description": "",
@@ -62,23 +65,18 @@ def test_spotify_playlist_basic_fields(spotify_client_mock: MagicMock) -> None:
             "total": 1,
         },
     }
-    spotify_client_mock.client.playlist.return_value = sample_response
-    playlist = SpotifyPlaylist(
-        spotify_client_mock.client.playlist.return_value["id"], spotify_client_mock
-    )
-    assert playlist.id == spotify_client_mock.client.playlist.return_value["id"]
-    assert playlist.name == spotify_client_mock.client.playlist.return_value["name"]
-    assert (
-        playlist.description
-        == spotify_client_mock.client.playlist.return_value["description"]
-    )
-    assert playlist.uri == spotify_client_mock.client.playlist.return_value["uri"]
+    spotipy_mock.playlist.return_value = sample_response
+    playlist = SpotifyClient("", "").get_playlist("")
+    assert playlist.id == spotipy_mock.playlist.return_value["id"]
+    assert playlist.name == spotipy_mock.playlist.return_value["name"]
+    assert playlist.description == spotipy_mock.playlist.return_value["description"]
+    assert playlist.uri == spotipy_mock.playlist.return_value["uri"]
     assert len(playlist.songs) == len(
-        spotify_client_mock.client.playlist.return_value["tracks"]["items"]
+        spotipy_mock.playlist.return_value["tracks"]["items"]
     )
 
 
-def test_spotify_playlist_songs_over_limit(spotify_client_mock: MagicMock) -> None:
+def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> None:
     sample_response = {
         "id": "sample_id",
         "description": "",
@@ -113,17 +111,15 @@ def test_spotify_playlist_songs_over_limit(spotify_client_mock: MagicMock) -> No
             "total": 1,
         },
     }
-    spotify_client_mock.client.playlist.return_value = sample_response
-    playlist = SpotifyPlaylist(
-        spotify_client_mock.client.playlist.return_value["id"], spotify_client_mock
-    )
+    spotipy_mock.playlist.return_value = sample_response
+    playlist = SpotifyClient("", "").get_playlist("")
 
     assert len(playlist.songs) == len(
-        spotify_client_mock.client.playlist.return_value["tracks"]["items"]
+        spotipy_mock.playlist.return_value["tracks"]["items"]
     )
 
 
-def test_spotify_playlist_avoid_episodes(spotify_client_mock: MagicMock) -> None:
+def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
     sample_response = {
         "id": "sample_id",
         "description": "",
@@ -158,11 +154,9 @@ def test_spotify_playlist_avoid_episodes(spotify_client_mock: MagicMock) -> None
             "total": 1,
         },
     }
-    spotify_client_mock.client.playlist.return_value = sample_response
-    playlist = SpotifyPlaylist(
-        spotify_client_mock.client.playlist.return_value["id"], spotify_client_mock
-    )
+    spotipy_mock.playlist.return_value = sample_response
+    playlist = SpotifyClient("", "").get_playlist("")
     assert (
         len(playlist.songs)
-        == len(spotify_client_mock.client.playlist.return_value["tracks"]["items"]) - 1
+        == len(spotipy_mock.playlist.return_value["tracks"]["items"]) - 1
     )

@@ -3,8 +3,6 @@ import json
 from playtitle.infra.cohere.client import CohereClient
 from playtitle.infra.cohere.title_generator import CohereTitleGenerator
 from playtitle.infra.spotify.client import SpotifyClient
-from playtitle.infra.spotify.repository.playlist import SpotifyPlaylist
-from playtitle.use_cases.get_all_songs import GetSongsFromPlaylist
 
 
 with open("config/credentials.json") as file:
@@ -19,8 +17,6 @@ if __name__ == "__main__":
     args = sys.argv[2:]
     if command == "playlist":
         playlist_id = args[0]
-        playlist = SpotifyPlaylist(
-            playlist_id=playlist_id, spotify_client=spotify_client
-        )
-        songs = GetSongsFromPlaylist(playlist).exec()
+        playlist = spotify_client.get_playlist(playlist_id=playlist_id)
         title = CohereTitleGenerator(cohere_client=cohere_client).generate_title()
+        print(title)
