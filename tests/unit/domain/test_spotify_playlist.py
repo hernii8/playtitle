@@ -48,7 +48,7 @@ def spotify_songs():
             happiness=0.9,
             artists=[
                 Artist(
-                    name="artist",
+                    name="artist2",
                     popularity=10,
                     follower_count=10000,
                     genres=["Pop", "Jazz"],
@@ -66,3 +66,11 @@ def test_get_average_values(spotify_songs):
     assert averages["acousticness"] == (
         (spotify_songs[0].acousticness + spotify_songs[1].acousticness) / 2
     )
+    assert averages["top3_artists"] == [
+        spotify_songs[0].artists[0].name,
+        spotify_songs[1].artists[0].name,
+    ]
+    assert averages["top3_genres"] == [
+        spotify_songs[0].artists[0].genres[0],
+        spotify_songs[0].artists[0].genres[1],
+    ]
