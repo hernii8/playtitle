@@ -1,4 +1,5 @@
 from typing import Any
+from playtitle.domain.entities.spotify_playlist import SpotifyPlaylist
 from playtitle.domain.entities.playlist import Playlist
 from playtitle.domain.entities.spotify_song import SpotifySong
 from spotipy import Spotify
@@ -21,7 +22,7 @@ class SpotifyClient:
     def client(self):
         return self.__client
 
-    def get_playlist(self, playlist_id: str):
+    def get_playlist(self, playlist_id: str) -> SpotifyPlaylist:
         playlist_info = self.__fetch_info(playlist_id)
         songs = [
             self.__to_spotify_song(item)
