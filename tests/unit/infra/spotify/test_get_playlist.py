@@ -59,6 +59,7 @@ def test_spotify_playlist_basic_fields(spotipy_mock: MagicMock) -> None:
                         "episode": False,
                         "artists": [
                             {
+                                "id": "1",
                                 "name": "artist",
                                 "popularity": 10,
                                 "followers": {"total": 10000},
@@ -73,6 +74,9 @@ def test_spotify_playlist_basic_fields(spotipy_mock: MagicMock) -> None:
         },
     }
     spotipy_mock.playlist.return_value = sample_response
+    spotipy_mock.artists.return_value = {
+        "artists": sample_response["tracks"]["items"][0]["track"]["artists"]
+    }
     playlist = SpotifyClient("", "").get_playlist("")
     assert playlist.id == spotipy_mock.playlist.return_value["id"]
     assert playlist.name == spotipy_mock.playlist.return_value["name"]
@@ -102,6 +106,7 @@ def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> None:
                         "episode": False,
                         "artists": [
                             {
+                                "id": "1",
                                 "name": "artist",
                                 "popularity": 10,
                                 "followers": {"total": 10000},
@@ -121,6 +126,7 @@ def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> None:
                         "episode": False,
                         "artists": [
                             {
+                                "id": "2",
                                 "name": "artist",
                                 "popularity": 10,
                                 "followers": {"total": 10000},
@@ -135,6 +141,10 @@ def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> None:
         },
     }
     spotipy_mock.playlist.return_value = sample_response
+    spotipy_mock.artists.side_effect = [
+        {"artists": sample_response["tracks"]["items"][0]["track"]["artists"]},
+        {"artists": sample_response["tracks"]["items"][1]["track"]["artists"]},
+    ]
     playlist = SpotifyClient("", "").get_playlist("")
 
     assert len(playlist.songs) == len(
@@ -161,6 +171,7 @@ def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
                         "episode": True,
                         "artists": [
                             {
+                                "id": "1",
                                 "name": "artist",
                                 "popularity": 10,
                                 "followers": {"total": 10000},
@@ -180,6 +191,7 @@ def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
                         "episode": False,
                         "artists": [
                             {
+                                "id": "2",
                                 "name": "artist",
                                 "popularity": 10,
                                 "followers": {"total": 10000},
@@ -194,6 +206,10 @@ def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
         },
     }
     spotipy_mock.playlist.return_value = sample_response
+    spotipy_mock.artists.side_effect = [
+        {"artists": sample_response["tracks"]["items"][0]["track"]["artists"]},
+        {"artists": sample_response["tracks"]["items"][1]["track"]["artists"]},
+    ]
     playlist = SpotifyClient("", "").get_playlist("")
     assert (
         len(playlist.songs)

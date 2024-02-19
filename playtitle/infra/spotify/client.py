@@ -59,6 +59,11 @@ class SpotifyClient:
                     [song["id"] for song in songs_iteration]
                 )
                 tracks += songs_iteration
+
+        for song in tracks:
+            artist_ids = [artist["id"] for artist in song["track"]["artists"]]
+            song["track"]["artists"] = self.client.artists(artist_ids)["artists"]
+
         return [
             {**song["track"], **audio_feature}
             for song, audio_feature in zip(tracks, audio_features)
