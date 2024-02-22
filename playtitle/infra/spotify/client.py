@@ -59,32 +59,44 @@ class SpotifyClient:
             )
             audio_features += audio_features_i
             songs += songs_i
-
         return [
             {**song["track"], **audio_feature}
             for song, audio_feature in zip(songs, audio_features)
         ]
 
     async def __fetch_songs_batch(self, playlist_id, offset, limit):
-        songs = (
-            await asyncio.to_thread(
-                self.client.playlist_items,
-                playlist_id=playlist_id,
-                offset=offset,
-                limit=limit,
-            )
-        )["items"]
-        audio_features = await asyncio.to_thread(
+        songs_response = await asyncio.to_thread(
+            self.client.playlist_items,
+            playlist_id=playlist_id,
+            offset=offset,
+            limit=limit,
+        )
+        songs = songs_response["items"]
+        audio_features_response = await asyncio.to_thread(
             self.client.audio_features, [song["track"]["id"] for song in songs]
         )
-        for song in songs:
-            artist_ids = [artist["id"] for artist in song["track"]["artists"]]
-            artists = (await asyncio.to_thread(self.client.artists, artist_ids))[
-                "artists"
+        artist_ids = [
+            artist["id"] for song in songs for artist in song["track"]["artists"]
+        ]
+        artist_batches = [
+            artist_ids[i : i + limit - 1] for i in range(0, len(artist_ids), limit)
+        ]
+        artists_response_tasks = await asyncio.gather(
+            *[
+                asyncio.to_thread(self.client.artists, artist_batches[i])
+                for i in range(len(artist_batches))
             ]
-            song["track"]["artists"] = artists
-
-        return (songs, audio_features)
+        )
+        artists_response = [
+            artist for task in artists_response_tasks for artist in task["artists"]
+        ]
+        for songs_i in range(len(songs)):
+            songs[songs_i]["track"]["artists"] = []
+            for artist_i in range(len(songs[songs_i]["track"]["artists"])):
+                songs[songs_i]["track"]["artists"] += artists_response[
+                    songs_i + artist_i
+                ]
+        return (songs, audio_features_response)
 
     def __to_spotify_song(self, spotify_song) -> SpotifySong:
         return SpotifySong(
