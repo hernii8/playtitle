@@ -7,7 +7,7 @@ from playtitle.domain.entities.spotify_song import SpotifySong
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 
-FETCH_SONGS_INTERVAL = 100
+FETCH_SONGS_INTERVAL = 50
 MAX_CONCURRENT_BATCHES = 3
 
 
@@ -69,7 +69,7 @@ class SpotifyClient:
         ]
         for i in range(0, len(batches), self.__max_concurrent_batches):
             responses = await asyncio.gather(
-                *batches[i : i + self.__max_concurrent_batches - 1]
+                *batches[i : i + self.__max_concurrent_batches]
             )
             for response in responses:
                 songs_i, audio_features_i = response
@@ -96,7 +96,7 @@ class SpotifyClient:
             artist["id"] for song in songs for artist in song["track"]["artists"]
         ]
         artist_batches = [
-            artist_ids[i : i + limit - 1] for i in range(0, len(artist_ids), limit)
+            artist_ids[i : i + limit] for i in range(0, len(artist_ids), limit)
         ]
         artists_response_tasks = await asyncio.gather(
             *[
