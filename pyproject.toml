@@ -10,6 +10,8 @@ python = "^3.10"
 spotipy = "^2.23.0"
 pytest = "^8.0.0"
 cohere = "^4.47"
+asyncio = "^3.4.3"
+pytest-asyncio = "^0.23.5"
 
 
 [tool.poetry.group.dev.dependencies]

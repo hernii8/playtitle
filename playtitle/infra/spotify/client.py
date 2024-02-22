@@ -1,4 +1,5 @@
 from typing import Any
+import asyncio
 from playtitle.domain.entities.artist import Artist
 from playtitle.domain.entities.spotify_playlist import SpotifyPlaylist
 from playtitle.domain.entities.spotify_song import SpotifySong
@@ -6,6 +7,7 @@ from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 
 FETCH_SONGS_INTERVAL = 100
+MAX_CONCURRENT_BATCHES = 3
 
 
 class SpotifyClient:
@@ -22,8 +24,8 @@ class SpotifyClient:
     def client(self):
         return self.__client
 
-    def get_playlist(self, playlist_id: str) -> SpotifyPlaylist:
-        playlist_info = self.__fetch_info(playlist_id)
+    async def get_playlist(self, playlist_id: str) -> SpotifyPlaylist:
+        playlist_info = await self.__fetch_info(playlist_id)
         songs = [
             self.__to_spotify_song(item)
             for item in playlist_info["songs"]
@@ -37,37 +39,52 @@ class SpotifyClient:
             songs=songs,
         )
 
-    def __fetch_info(self, playlist_id: str) -> dict[Any | str, Any]:
-        response = self.client.playlist(playlist_id)
+    async def __fetch_info(self, playlist_id: str) -> dict[Any | str, Any]:
+        response = await asyncio.to_thread(self.client.playlist, playlist_id)
+        songs = await self.__fetch_songs(response["tracks"], playlist_id)
         return {
             **response,
-            "songs": self.__fetch_songs(response["tracks"], playlist_id),
+            "songs": songs,
         }
 
-    def __fetch_songs(self, response_tracks, playlist_id: str) -> list[SpotifySong]:
-        tracks = response_tracks["items"]
-        default_limit = response_tracks["limit"]
-        audio_features = self.client.audio_features(
-            [song["track"]["id"] for song in tracks]
-        )
-        if (total := response_tracks["total"]) > default_limit:
-            for i in range(default_limit + 1, total, FETCH_SONGS_INTERVAL):
-                songs_iteration = self.client.playlist_items(
-                    playlist_id=playlist_id, offset=i, limit=FETCH_SONGS_INTERVAL
-                )["items"]
-                audio_features += self.client.audio_features(
-                    [song["id"] for song in songs_iteration]
-                )
-                tracks += songs_iteration
+    async def __fetch_songs(
+        self, response_tracks, playlist_id: str
+    ) -> list[SpotifySong]:
+        songs = []
+        audio_features = []
 
-        for song in tracks:
-            artist_ids = [artist["id"] for artist in song["track"]["artists"]]
-            song["track"]["artists"] = self.client.artists(artist_ids)["artists"]
+        for i in range(0, response_tracks["total"], FETCH_SONGS_INTERVAL):
+            songs_i, audio_features_i = await self.__fetch_songs_batch(
+                playlist_id, offset=i, limit=FETCH_SONGS_INTERVAL
+            )
+            audio_features += audio_features_i
+            songs += songs_i
 
         return [
             {**song["track"], **audio_feature}
-            for song, audio_feature in zip(tracks, audio_features)
+            for song, audio_feature in zip(songs, audio_features)
         ]
+
+    async def __fetch_songs_batch(self, playlist_id, offset, limit):
+        songs = (
+            await asyncio.to_thread(
+                self.client.playlist_items,
+                playlist_id=playlist_id,
+                offset=offset,
+                limit=limit,
+            )
+        )["items"]
+        audio_features = await asyncio.to_thread(
+            self.client.audio_features, [song["track"]["id"] for song in songs]
+        )
+        for song in songs:
+            artist_ids = [artist["id"] for artist in song["track"]["artists"]]
+            artists = (await asyncio.to_thread(self.client.artists, artist_ids))[
+                "artists"
+            ]
+            song["track"]["artists"] = artists
+
+        return (songs, audio_features)
 
     def __to_spotify_song(self, spotify_song) -> SpotifySong:
         return SpotifySong(
