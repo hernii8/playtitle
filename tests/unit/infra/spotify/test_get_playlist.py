@@ -88,6 +88,9 @@ async def test_spotify_playlist_basic_fields(spotipy_mock: MagicMock) -> None:
     assert len(playlist.songs) == len(
         spotipy_mock.playlist.return_value["tracks"]["items"]
     )
+    assert len(playlist.songs[0].artists) == len(
+        spotipy_mock.playlist.return_value["tracks"]["items"][0]["track"]["artists"]
+    )
 
 
 @pytest.mark.asyncio
@@ -146,16 +149,17 @@ async def test_spotify_playlist_songs_over_limit(spotipy_mock: MagicMock) -> Non
     }
     spotipy_mock.playlist.return_value = sample_response
     spotipy_mock.playlist_items.return_value = sample_response["tracks"]
-    spotipy_mock.artists.return_value = {
-        "artists": [
-            sample_response["tracks"]["items"][0]["track"]["artists"],
-            sample_response["tracks"]["items"][1]["track"]["artists"],
-        ]
-    }
-    playlist = await SpotifyClient("", "").get_playlist("")
+    spotipy_mock.artists.side_effect = [
+        {"artists": sample_response["tracks"]["items"][0]["track"]["artists"]},
+        {"artists": sample_response["tracks"]["items"][1]["track"]["artists"]},
+    ]
+    playlist = await SpotifyClient("", "", fetch_songs_limit=1).get_playlist("")
 
     assert len(playlist.songs) == len(
         spotipy_mock.playlist.return_value["tracks"]["items"]
+    )
+    assert len(playlist.songs[0].artists) == len(
+        spotipy_mock.playlist.return_value["tracks"]["items"][0]["track"]["artists"]
     )
 
 
@@ -216,10 +220,8 @@ async def test_spotify_playlist_avoid_episodes(spotipy_mock: MagicMock) -> None:
     spotipy_mock.playlist.return_value = sample_response
     spotipy_mock.playlist_items.return_value = sample_response["tracks"]
     spotipy_mock.artists.return_value = {
-        "artists": [
-            sample_response["tracks"]["items"][0]["track"]["artists"],
-            sample_response["tracks"]["items"][1]["track"]["artists"],
-        ]
+        "artists": sample_response["tracks"]["items"][0]["track"]["artists"]
+        + sample_response["tracks"]["items"][1]["track"]["artists"]
     }
     playlist = await SpotifyClient("", "").get_playlist("")
     assert (
