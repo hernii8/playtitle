@@ -8,7 +8,7 @@ from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 
 FETCH_SONGS_INTERVAL = 50
-MAX_CONCURRENT_BATCHES = 3
+MAX_CONCURRENT_BATCHES = 10
 
 
 class SpotifyClient:
@@ -29,10 +29,6 @@ class SpotifyClient:
         self.__fetch_songs_limit = fetch_songs_limit
         self.__max_concurrent_batches = max_concurrent_batches
 
-    @property
-    def client(self):
-        return self.__client
-
     async def get_playlist(self, playlist_id: str) -> SpotifyPlaylist:
         playlist_info = await self.__fetch_info(playlist_id)
         songs = [
@@ -49,7 +45,7 @@ class SpotifyClient:
         )
 
     async def __fetch_info(self, playlist_id: str) -> dict[Any | str, Any]:
-        response = await asyncio.to_thread(self.client.playlist, playlist_id)
+        response = await asyncio.to_thread(self.__client.playlist, playlist_id)
         songs = await self.__fetch_songs(response["tracks"], playlist_id)
         return {
             **response,
@@ -83,14 +79,14 @@ class SpotifyClient:
 
     async def __fetch_songs_batch(self, playlist_id, offset, limit):
         songs_response = await asyncio.to_thread(
-            self.client.playlist_items,
+            self.__client.playlist_items,
             playlist_id=playlist_id,
             offset=offset,
             limit=limit,
         )
         songs = deepcopy(songs_response["items"])
         audio_features_response = await asyncio.to_thread(
-            self.client.audio_features, [song["track"]["id"] for song in songs]
+            self.__client.audio_features, [song["track"]["id"] for song in songs]
         )
         artist_ids = [
             artist["id"] for song in songs for artist in song["track"]["artists"]
@@ -100,7 +96,7 @@ class SpotifyClient:
         ]
         artists_response_tasks = await asyncio.gather(
             *[
-                asyncio.to_thread(self.client.artists, artist_batches[i])
+                asyncio.to_thread(self.__client.artists, artist_batches[i])
                 for i in range(len(artist_batches))
             ]
         )
