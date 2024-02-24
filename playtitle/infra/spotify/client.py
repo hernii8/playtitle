@@ -12,7 +12,7 @@ MAX_CONCURRENT_BATCHES = 10
 
 
 class SpotifyClient:
-    __client: Spotify
+    _client: Spotify
 
     def __init__(
         self,
@@ -21,7 +21,7 @@ class SpotifyClient:
         fetch_songs_limit=FETCH_SONGS_INTERVAL,
         max_concurrent_batches=MAX_CONCURRENT_BATCHES,
     ) -> None:
-        self.__client = Spotify(
+        self._client = Spotify(
             auth_manager=SpotifyClientCredentials(
                 client_id=client_id, client_secret=client_secret
             )
@@ -45,7 +45,7 @@ class SpotifyClient:
         )
 
     async def __fetch_info(self, playlist_id: str) -> dict[Any | str, Any]:
-        response = await asyncio.to_thread(self.__client.playlist, playlist_id)
+        response = await asyncio.to_thread(self._client.playlist, playlist_id)
         songs = await self.__fetch_songs(response["tracks"], playlist_id)
         return {
             **response,
@@ -79,14 +79,14 @@ class SpotifyClient:
 
     async def __fetch_songs_batch(self, playlist_id, offset, limit):
         songs_response = await asyncio.to_thread(
-            self.__client.playlist_items,
+            self._client.playlist_items,
             playlist_id=playlist_id,
             offset=offset,
             limit=limit,
         )
         songs = deepcopy(songs_response["items"])
         audio_features_response = await asyncio.to_thread(
-            self.__client.audio_features, [song["track"]["id"] for song in songs]
+            self._client.audio_features, [song["track"]["id"] for song in songs]
         )
         artist_ids = [
             artist["id"] for song in songs for artist in song["track"]["artists"]
@@ -96,7 +96,7 @@ class SpotifyClient:
         ]
         artists_response_tasks = await asyncio.gather(
             *[
-                asyncio.to_thread(self.__client.artists, artist_batches[i])
+                asyncio.to_thread(self._client.artists, artist_batches[i])
                 for i in range(len(artist_batches))
             ]
         )

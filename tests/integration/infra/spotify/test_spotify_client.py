@@ -10,8 +10,8 @@ def init_spotify_client() -> Generator[Spotify, Any, Any]:
     with open("config/credentials.json") as file:
         credentials = json.load(file)
     spotify_client = SpotifyClient(
-        credentials["spotify"]["client_id"],
-        credentials["spotify"]["client_secret"]).client
+        credentials["spotify"]["client_id"], credentials["spotify"]["client_secret"]
+    )._client
     yield spotify_client
 
 
