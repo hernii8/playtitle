@@ -4,6 +4,7 @@ from copy import deepcopy
 from playtitle.domain.entities.artist import Artist
 from playtitle.domain.entities.spotify_playlist import SpotifyPlaylist
 from playtitle.domain.entities.spotify_song import SpotifySong
+from playtitle.utils.rate_limited_batch_processing import rate_limited_batch_processing
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -43,17 +44,15 @@ class SpotifyClient:
     async def __fetch_songs(
         self, response_tracks, playlist_id: str
     ) -> list[SpotifySong]:
-        responses = []
         batches = [
             self.__fetch_songs_batch(
                 playlist_id, offset=i, limit=self.__fetch_songs_limit
             )
             for i in range(0, response_tracks["total"], self.__fetch_songs_limit)
         ]
-        for i in range(0, len(batches), self.__max_concurrent_batches):
-            responses += await asyncio.gather(
-                *batches[i : i + self.__max_concurrent_batches]
-            )
+        responses = await rate_limited_batch_processing(
+            batches, self.__max_concurrent_batches
+        )
 
         return [
             self.__to_spotify_song({**song["track"], **audio_feature})
