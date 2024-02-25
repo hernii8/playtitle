@@ -30,12 +30,8 @@ class SpotifyClient:
         self.__max_concurrent_batches = max_concurrent_batches
 
     async def get_playlist(self, playlist_id: str) -> SpotifyPlaylist:
-        playlist_info = await self.__fetch_info(playlist_id)
-        songs = [
-            self.__to_spotify_song(item)
-            for item in playlist_info["songs"]
-            if item["episode"] is False
-        ]
+        playlist_info = await asyncio.to_thread(self._client.playlist, playlist_id)
+        songs = await self.__fetch_songs(playlist_info["tracks"], playlist_id)
         return SpotifyPlaylist(
             id=playlist_info["id"],
             name=playlist_info["name"],
@@ -44,19 +40,10 @@ class SpotifyClient:
             songs=songs,
         )
 
-    async def __fetch_info(self, playlist_id: str) -> dict[Any | str, Any]:
-        response = await asyncio.to_thread(self._client.playlist, playlist_id)
-        songs = await self.__fetch_songs(response["tracks"], playlist_id)
-        return {
-            **response,
-            "songs": songs,
-        }
-
     async def __fetch_songs(
         self, response_tracks, playlist_id: str
     ) -> list[SpotifySong]:
-        songs = []
-        audio_features = []
+        responses = []
         batches = [
             self.__fetch_songs_batch(
                 playlist_id, offset=i, limit=self.__fetch_songs_limit
@@ -64,17 +51,15 @@ class SpotifyClient:
             for i in range(0, response_tracks["total"], self.__fetch_songs_limit)
         ]
         for i in range(0, len(batches), self.__max_concurrent_batches):
-            responses = await asyncio.gather(
+            responses += await asyncio.gather(
                 *batches[i : i + self.__max_concurrent_batches]
             )
-            for response in responses:
-                songs_i, audio_features_i = response
-                audio_features += audio_features_i
-                songs += songs_i
 
         return [
-            {**song["track"], **audio_feature}
-            for song, audio_feature in zip(songs, audio_features)
+            self.__to_spotify_song({**song["track"], **audio_feature})
+            for response_songs, response_audio_features in responses
+            for song, audio_feature in zip(response_songs, response_audio_features)
+            if song["track"]["episode"] is False
         ]
 
     async def __fetch_songs_batch(self, playlist_id, offset, limit):
