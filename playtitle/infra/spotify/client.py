@@ -1,6 +1,4 @@
-from typing import Any
 import asyncio
-from copy import deepcopy
 from playtitle.domain.entities.artist import Artist
 from playtitle.domain.entities.spotify_playlist import SpotifyPlaylist
 from playtitle.domain.entities.spotify_song import SpotifySong
