@@ -73,7 +73,7 @@ class SpotifyClient:
         )
 
         for i, song in enumerate(response_songs["items"]):
-            for j, _ in enumerate((song_artists := song["track"]["artists"])):
+            for j in (song_artists := song["track"]["artists"]):
                 song_artists[j] = artists_response[i + j]
 
         return [
